@@ -29,11 +29,15 @@
     		if (mysqli_num_rows($check) > 0) {
         		echo "Данный бренд уже добавлен)<br>";
     		} else {
-        		$sql_brand = "INSERT INTO `table_brand` (brand) VALUES ('$brand')";
-                	$link -> query($sql_brand);
+			$sql_brand = "INSERT INTO `table_brand` (brand) VALUES ('$brand')";
+			if ($link -> query($sql_brand) === TRUE) {
+				echo "Бренд успешно добавлен!<br>";
+			} else {
+				echo 'Ошибка при добавлении бренда: ' . $link->error . '<br>';
+			}
     		}
 	} else {
-    		echo 'Error: ' . mysqli_error();
+    		echo 'Error: ' . mysqli_error() . "<br>";
 	}
 
         if (empty($brand) || empty($model)) {

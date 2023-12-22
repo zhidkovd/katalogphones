@@ -14,37 +14,80 @@
 <?php 
 
 include 'connect_to_mysql.php';
-echo "<h5><p>В базе данных предоставлены следующие бренды: </p></h5>";
-$sql_brand = "SELECT brand FROM table_brand";
-$sql_model = "SELECT model, brand FROM table_model";
+echo "<h5><p><b>В базе данных предоставлены следующие бренды и их модели:</b></p></h5>";
+$sql_brand = "SELECT * FROM table_brand";
+$sql_model = "SELECT * FROM table_model";
+$sql_spec = "SELECT * FROM table_specification";
+$sql_desc = "SELECT * FROM table_description";
 $result_brand = mysqli_query($link, $sql_brand);
 $result_model = mysqli_query($link, $sql_model);
-echo "<p>";
+$result_spec = mysqli_query($link, $sql_spec);
+$result_desc = mysqli_query($link, $sql_desc);
+
+$brands = [];
 while ($i = mysqli_fetch_assoc($result_brand)) {
-	echo "Бренд: " . $i['brand'] . "<br>";
+    $brands[] = $i;
 }
-echo "</p>";
-echo "<p>";
-echo "<h5><p>В базе данных предоставлены следующие модели: </p></h5>";
+
+$models = [];
 while ($i = mysqli_fetch_assoc($result_model)) {
-	echo "Модель телефона: " . $i['brand'] . " " . $i['model'] . "<br>";
+    $models[] = $i;
 }
-echo "</p>";
 
+$specs = [];
+while ($i = mysqli_fetch_assoc($result_spec)) {
+    $specs[] = $i;
+}
+
+$descs = [];
+while ($i = mysqli_fetch_assoc($result_desc)) {
+    $descs[] = $i;
+}
+
+foreach ($brands as $brand) {
+    	echo "<b>Бренд: </b>" . $brand['brand'] . "<br><b>Модели бренда:</b><br>";
+    	mysqli_data_seek($result_model, 0);
+    	foreach ($models as $model) {
+        	if ($model['brand'] === $brand['brand']) {
+			echo $model['model'] . "<br><b>Его характеристики:</b><br>";
+			mysqli_data_seek($result_spec, 0);
+			foreach ($specs as $spec) {
+				if ($spec['model'] === $model['model']) {
+					echo $spec['name'] . ": ". $spec['description'] . "<br>";
+				}
+			}
+
+			echo "<b>Его описание:</b> ";
+			foreach ($descs as $desc) {
+				if ($desc['model'] === $model['model']) {
+					echo  $desc['description'] . "<br>";
+				}
+			}
+			echo "<br>";
+
+        	}
+    	}
+	echo '<hr class="hr-success" /><br>';
+}
+
+/*
+foreach ($brands as $brand) {
+    echo "<p><b>Бренд: </b>" . $brand['brand'] . "<br><b>Модели бренда:</b><br>";
+    mysqli_data_seek($result_model, 0); 
+    while ($j = mysqli_fetch_assoc($result_model)) {
+        if ($j['brand'] === $brand['brand']) {
+            echo $j['model'] . "<br>";
+        }
+    }
+    echo "</p>";
+}
+ */
+mysqli_close($link);
 ?>
-<!--
-<p>
-<h5><p>Добавить бренд: </p></h5>
-<form action="add_brand.php" method="POST">
-        <input type="text" placeholder="Введите бренд" name="brand" class="form-control"><br>
-        <input type="submit" value="Добавить" class="btn btn-success">
-        <hr class="hr-success" /><br>
-</form>
-</p>
--->
+
 
 <p>
-<h5><p>Добавить модель: </p></h5>
+<h5><p><b>Добавить модель: </b></p></h5>
 <form action="add_model.php" method="POST">
         <input type="text" placeholder="Введите бренд" name="brand" class="form-control"><br>
 	<input type="text" placeholder="Введите модель" name="model" class="form-control"><br>	
@@ -54,14 +97,44 @@ echo "</p>";
 </p>
 
 
-<h5><p>Добавить характеристику к модели: </p></h5>
+<h5><p><b>Добавить характеристику к модели: </b></p></h5>
 <form action="add_spec.php" method="POST">
-	<input type="text" placeholder="Введите бренд" name="brand" class="form-control"><br>
-	<input type="text" placeholder="Введите модель" name="model" class="form-control"><br>
-	<hr class="hr-success" /><br>
-	<input type="text" placeholder="Введите название характеристики" name="name_spec" class="form-control"><br>
-	<input type="text" placeholder="Введите характеристику" name="spec" class="form-control"><br>
-	<input type="submit" value="Добавить" class="btn btn-success"><br>
+
+<label for="brandDropdown">Выберите бренд:</label>
+<select id="brandDropdown" name="selectedBrand">
+<?php
+
+	include 'connect_to_mysql.php';
+
+        $result = mysqli_query($link, "SELECT DISTINCT brand FROM table_brand");
+
+        while ($row = mysqli_fetch_assoc($result)) {
+                echo "<option value='" . $row['brand'] . "'>" . $row['brand'] . "</option>";
+        }
+
+?>
+</select>
+
+
+<label for="modelDropdown">Выберите модель:</label>
+<select id="modelDropdown" name="selectedModel">
+<?php
+	$result = mysqli_query($link, "SELECT DISTINCT model FROM table_model");
+
+        while ($row = mysqli_fetch_assoc($result)) {
+                echo "<option value='" . $row['model'] . "'>" . $row['model'] . "</option>";
+        }
+
+	mysqli_close($link);
+
+?>
+</select>
+
+
+<hr class="hr-success" /><br>
+<input type="text" placeholder="Введите название характеристики" name="name_spec" class="form-control"><br>
+<input type="text" placeholder="Введите характеристику" name="spec" class="form-control"><br>
+<input type="submit" value="Добавить" class="btn btn-success"><br>
 </form>
 </div>
 </body>
